@@ -268,55 +268,117 @@ const extension: JupyterFrontEndPlugin<void> = {
     const toggleId = 'cell-alert-toggle';
     sidePanel.node.innerHTML = `
       <div style="padding: 16px">
-        <div style="margin-bottom: 16px">
-          <label>
-            GPU Type:
-            <select style="margin-left: 8px; padding: 4px; width: 120px">
+        <div style="margin-bottom: 24px">
+          <h3 style="margin: 0 0 16px 0">GPU Configuration</h3>
+          <div style="
+            display: flex;
+            align-items: center;
+            gap: 12px;
+          ">
+            <span>Type:</span>
+            <select style="
+              padding: 6px 12px;
+              border-radius: 4px;
+              border: 1px solid var(--jp-border-color1);
+              background: var(--jp-layout-color1);
+              color: var(--jp-ui-font-color1);
+              min-width: 150px;
+            ">
               <option value="H200" selected>H200 (141GB)</option>
-              <option value="A100">A100 (80GB)</option>
-              <option value="L4">L4 (24GB)</option>
-              <option value="T4">T4 (16GB)</option>
+              <option value="A100" disabled>A100 (80GB)</option>
+              <option value="L4" disabled>L4 (24GB)</option>
+              <option value="T4" disabled>T4 (16GB)</option>
             </select>
-          </label>
+          </div>
         </div>
 
-        <div style="margin-bottom: 16px">
-          GPU Memory Usage:
+        <div style="margin-bottom: 24px">
+          <h3 style="margin: 0 0 16px 0">GPU Status</h3>
           <div style="
-            margin-top: 8px;
-            width: 100%;
-            height: 20px;
             background: var(--jp-layout-color2);
-            border-radius: 4px;
-            overflow: hidden;
+            padding: 20px;
+            border-radius: 8px;
           ">
-            <div style="
-              width: 85%;
-              height: 100%;
-              background: var(--jp-brand-color1);
-              position: relative;
-            ">
-              <span style="
-                position: absolute;
-                right: 4px;
-                color: white;
-                font-size: 12px;
-                line-height: 20px;
-              ">120GB / 141GB</span>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px">
+              <span>Model:</span>
+              <span style="font-weight: 500">NVIDIA H200</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px">
+              <span>GPU Load:</span>
+              <span style="font-weight: 500">87%</span>
+            </div>
+            <div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px">
+                <span>Memory Usage:</span>
+                <span style="font-weight: 500">120GB / 141GB (85%)</span>
+              </div>
+              <div style="
+                width: 100%;
+                height: 8px;
+                background: var(--jp-layout-color3);
+                border-radius: 4px;
+                overflow: hidden;
+              ">
+                <div style="
+                  width: 85%;
+                  height: 100%;
+                  background: var(--jp-brand-color1);
+                  border-radius: 4px;
+                "></div>
+              </div>
             </div>
           </div>
         </div>
 
-        Compute time used this month:<br>
-        14 hours
-        <br><br>
+        <div style="
+          background: var(--jp-layout-color2);
+          padding: 16px;
+          border-radius: 8px;
+          margin-bottom: 24px;
+        ">
+          <h3 style="margin: 0 0 12px 0">Credit Status</h3>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px">
+            <span>Available Credits:</span>
+            <span style="font-weight: bold">100 hours ($300)</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px">
+            <span>Credit Usage Rate:</span>
+            <span>$3/hour (H200 GPU)</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span>Auto-reload at:</span>
+            <span>25 hours remaining</span>
+          </div>
+        </div>
 
-        Credits left: 100 hours
-        <br>
-        <br>
-        Energy Usage Stats:<br>
-        Current Power: 2.5 kW<br>
-        Daily Usage: 45 kWh<br><br>
+        <div style="margin-bottom: 24px">
+          <h3 style="margin: 0 0 12px 0">Usage Statistics</h3>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px">
+            <span>Today's GPU Time:</span>
+            <span>4.5 hours</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px">
+            <span>This Week:</span>
+            <span>14.2 hours</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span>This Month:</span>
+            <span>45.8 hours</span>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 24px">
+          <h3 style="margin: 0 0 12px 0">Energy Stats</h3>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px">
+            <span>Current Power:</span>
+            <span>2.5 kW</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span>Daily Usage:</span>
+            <span>45 kWh</span>
+          </div>
+        </div>
+
         <label>
           <input type="checkbox" id="${toggleId}"> Simulate Congestion
         </label>
