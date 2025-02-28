@@ -15,10 +15,16 @@ import { useState, useEffect } from 'react';
 import * as React from 'react';
 
 import '../style/index.css';
+import * as envergeLogoSvg from '../style/enverge.svg';
 
 import { INotebookTracker, NotebookActions } from '@jupyterlab/notebook';
 import { Widget } from '@lumino/widgets';
 import { Dialog } from '@jupyterlab/apputils';
+
+declare module '*.svg' {
+  const content: string;
+  export default content;
+}
 
 const themeTogglerPluginId = 'jupyterlab-theme-toggler:plugin';
 
@@ -229,6 +235,92 @@ const extension: JupyterFrontEndPlugin<void> = {
   ): Promise<void> => {
     console.log('jupyterlab-theme-toggler extension is activated!');
 
+    // Adjust top panel height
+    const adjustTopPanelHeight = () => {
+      const topPanel = document.getElementById('jp-top-panel');
+      const mainContentPanel = document.getElementById('jp-main-content-panel');
+      
+      if (topPanel) {
+        topPanel.style.height = '36px';
+      }
+      
+      if (mainContentPanel) {
+        mainContentPanel.style.top = '36px';
+      }
+    };
+   
+    setTimeout(adjustTopPanelHeight, 2000);
+    
+    // Replace Jupyter logo with Enverge.ai SVG
+    const replaceLogo = () => {
+      console.log('replacing logo');
+      const logoElement = document.getElementById('jp-MainLogo');
+      if (logoElement && !logoElement.hasAttribute('data-replaced')) {
+        logoElement.innerHTML = '';
+        
+        const imgElement = document.createElement('img');
+        imgElement.src = envergeLogoSvg as string;
+        imgElement.alt = 'Enverge.ai';
+        imgElement.style.height = '24px';
+        imgElement.style.width = 'auto';
+        
+        logoElement.appendChild(imgElement);
+        
+        logoElement.style.width = 'auto';
+        logoElement.style.minWidth = 'max-content';
+        logoElement.style.padding = '0 8px';
+        
+        logoElement.setAttribute('data-replaced', 'true');
+      }
+    };
+    setTimeout(replaceLogo, 2000);
+    
+    // Initialize credit state
+    let availableCredits = {
+      hours: 100,
+      minutes: 0
+    };
+
+    // Initialize usage statistics
+    let usageStats = {
+      today: 270, // 4.5 hours in minutes
+      week: 852,  // 14.2 hours in minutes
+      month: 2748 // 45.8 hours in minutes
+    };
+
+    // Function to update credits display
+    const updateCreditsDisplay = () => {
+      const creditsElement = document.getElementById('available-credits');
+      if (creditsElement) {
+        const totalHours = availableCredits.hours + (availableCredits.minutes / 60);
+        const dollarAmount = Math.round(totalHours * 3); // $3 per hour
+        creditsElement.textContent = `${availableCredits.hours} hours ${availableCredits.minutes} min ($${dollarAmount})`;
+      }
+      
+      // Update today's usage display
+      const todayUsageElement = document.getElementById('today-usage');
+      if (todayUsageElement) {
+        const todayHours = Math.floor(usageStats.today / 60);
+        const todayMinutes = usageStats.today % 60;
+        todayUsageElement.textContent = `${todayHours} hours ${todayMinutes} min`;
+      }
+    };
+
+    // Function to decrease credits by 1 minute
+    const decreaseCredits = () => {
+      if (availableCredits.minutes > 0) {
+        availableCredits.minutes -= 1;
+      } else if (availableCredits.hours > 0) {
+        availableCredits.hours -= 1;
+        availableCredits.minutes = 59;
+      }
+      
+      // Increase today's usage by 1 minute
+      usageStats.today += 1;
+      
+      updateCreditsDisplay();
+    };
+
     // Get app commands
     const { commands } = app;
 
@@ -293,24 +385,24 @@ const extension: JupyterFrontEndPlugin<void> = {
         </div>
 
         <div style="margin-bottom: 24px">
-          <h3 style="margin: 0 0 16px 0">GPU Status</h3>
           <div style="
             background: var(--jp-layout-color2);
             padding: 20px;
             border-radius: 8px;
           ">
+            <h3 style="margin: 0 0 16px 0">GPU Status</h3>
             <div style="display: flex; justify-content: space-between; margin-bottom: 12px">
               <span>Model:</span>
               <span style="font-weight: 500">NVIDIA H200</span>
             </div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 12px">
               <span>GPU Load:</span>
-              <span style="font-weight: 500">87%</span>
+              <span id="gpu-load-value" style="font-weight: 500">0%</span>
             </div>
             <div>
               <div style="display: flex; justify-content: space-between; margin-bottom: 8px">
                 <span>Memory Usage:</span>
-                <span style="font-weight: 500">120GB / 141GB (85%)</span>
+                <span id="memory-usage-value" style="font-weight: 500">0GB / 141GB (0%)</span>
               </div>
               <div style="
                 width: 100%;
@@ -319,8 +411,8 @@ const extension: JupyterFrontEndPlugin<void> = {
                 border-radius: 4px;
                 overflow: hidden;
               ">
-                <div style="
-                  width: 85%;
+                <div id="memory-usage-bar" style="
+                  width: 0%;
                   height: 100%;
                   background: var(--jp-brand-color1);
                   border-radius: 4px;
@@ -339,7 +431,7 @@ const extension: JupyterFrontEndPlugin<void> = {
           <h3 style="margin: 0 0 12px 0">Credit Status</h3>
           <div style="display: flex; justify-content: space-between; margin-bottom: 8px">
             <span>Available Credits:</span>
-            <span style="font-weight: bold">100 hours ($300)</span>
+            <span id="available-credits" style="font-weight: bold">100 hours 0 min ($300)</span>
           </div>
           <div style="display: flex; justify-content: space-between; margin-bottom: 8px">
             <span>Credit Usage Rate:</span>
@@ -355,15 +447,15 @@ const extension: JupyterFrontEndPlugin<void> = {
           <h3 style="margin: 0 0 12px 0">Usage Statistics</h3>
           <div style="display: flex; justify-content: space-between; margin-bottom: 8px">
             <span>Today's GPU Time:</span>
-            <span>4.5 hours</span>
+            <span id="today-usage">4 hours 30 min</span>
           </div>
           <div style="display: flex; justify-content: space-between; margin-bottom: 8px">
             <span>This Week:</span>
-            <span>14.2 hours</span>
+            <span>14 hours 12 min</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span>This Month:</span>
-            <span>45.8 hours</span>
+            <span>45 hours 48 min</span>
           </div>
         </div>
 
@@ -385,6 +477,9 @@ const extension: JupyterFrontEndPlugin<void> = {
       </div>
     `;
 
+    // Initialize credits display after panel is added
+    setTimeout(updateCreditsDisplay, 100);
+
     // Add to right side panel
     app.shell.add(sidePanel, 'right');
     
@@ -392,10 +487,48 @@ const extension: JupyterFrontEndPlugin<void> = {
       restorer.add(sidePanel, sidePanel.id);
     }
 
+    // Function to update GPU stats during cell execution
+    const updateGPUStats = () => {
+      // Generate random GPU load between 85-98%
+      const gpuLoad = Math.floor(Math.random() * 14) + 85;
+      
+      // Generate random memory usage between 80-95%
+      const memoryPercentage = Math.floor(Math.random() * 16) + 80;
+      const memoryGB = Math.round((memoryPercentage / 100) * 141);
+      
+      // Update the DOM elements
+      const gpuLoadElement = document.getElementById('gpu-load-value');
+      const memoryUsageElement = document.getElementById('memory-usage-value');
+      const memoryUsageBar = document.getElementById('memory-usage-bar');
+      
+      if (gpuLoadElement) {
+        gpuLoadElement.textContent = `${gpuLoad}%`;
+      }
+      
+      if (memoryUsageElement) {
+        memoryUsageElement.textContent = `${memoryGB}GB / 141GB (${memoryPercentage}%)`;
+      }
+      
+      if (memoryUsageBar) {
+        memoryUsageBar.style.width = `${memoryPercentage}%`;
+      }
+      
+      // Decrease credits by 1 minute
+      decreaseCredits();
+    };
+
     // Add cell execution listener with toggle check
     notebookTracker.currentChanged.connect((_, notebook) => {
       if (notebook) {
-        NotebookActions.executed.connect((_, args) => {
+        // Track the update interval
+        let updateInterval: number | null = null;
+        
+        // Listen for cell execution starting
+        NotebookActions.executionScheduled.connect((_, args) => {
+          // Start continuous updates
+          updateGPUStats();
+          updateInterval = window.setInterval(updateGPUStats, 2000);
+          
           const toggle = document.getElementById(toggleId) as HTMLInputElement;
           if (toggle?.checked) {
             void showDialog({
@@ -515,6 +648,34 @@ const extension: JupyterFrontEndPlugin<void> = {
               ]
             });
           }
+        });
+        
+        // Reset stats after execution completes
+        NotebookActions.executed.connect(() => {
+          // Clear the update interval
+          if (updateInterval !== null) {
+            clearInterval(updateInterval);
+            updateInterval = null;
+          }
+          
+          // Reset stats after a short delay
+          setTimeout(() => {
+            const gpuLoadElement = document.getElementById('gpu-load-value');
+            const memoryUsageElement = document.getElementById('memory-usage-value');
+            const memoryUsageBar = document.getElementById('memory-usage-bar');
+            
+            if (gpuLoadElement) {
+              gpuLoadElement.textContent = '0%';
+            }
+            
+            if (memoryUsageElement) {
+              memoryUsageElement.textContent = '0GB / 141GB (0%)';
+            }
+            
+            if (memoryUsageBar) {
+              memoryUsageBar.style.width = '0%';
+            }
+          }, 2000);
         });
       }
     });
