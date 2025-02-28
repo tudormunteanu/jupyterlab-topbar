@@ -15,6 +15,7 @@ import { useState, useEffect } from 'react';
 import * as React from 'react';
 
 import '../style/index.css';
+import envergeLogoSvg from '../style/enverge.svg';
 
 import { INotebookTracker, NotebookActions } from '@jupyterlab/notebook';
 import { Widget } from '@lumino/widgets';
@@ -235,40 +236,45 @@ const extension: JupyterFrontEndPlugin<void> = {
       const mainContentPanel = document.getElementById('jp-main-content-panel');
       
       if (topPanel) {
-        topPanel.style.height = '36px';
+        topPanel.style.height = '46px';
       }
       
       if (mainContentPanel) {
-        mainContentPanel.style.top = '36px';
+        mainContentPanel.style.top = '46px';
+      }
+
+      const menuBar = document.getElementsByClassName('lm-MenuBar-content')[0] as HTMLElement;
+      menuBar.style.paddingTop = '10px';
+
+      const lmMenuBar = document.getElementsByClassName('lm-MenuBar');
+      for (let i = 0; i < lmMenuBar.length; i++) {
+        const element = lmMenuBar[i] as HTMLElement;
+        element.style.color = 'var(--jp-accent-color1)';
       }
     };
    
     setTimeout(adjustTopPanelHeight, 2000);
     
-    // Replace Jupyter logo with Enverge.ai text
+    // Replace Jupyter logo with Enverge.ai SVG
     const replaceLogo = () => {
       console.log('replacing logo');
       const logoElement = document.getElementById('jp-MainLogo');
       if (logoElement && !logoElement.hasAttribute('data-replaced')) {
-        // Clear existing content
-        logoElement.innerHTML = '';
+        // Set SVG directly as innerHTML
+        logoElement.innerHTML = envergeLogoSvg;
         
-        // Create and style the text element
-        const textElement = document.createElement('div');
-        textElement.textContent = 'Enverge.ai';
-        textElement.style.fontWeight = 'bold';
-        textElement.style.fontSize = '18px';
-        textElement.style.color = 'var(--jp-ui-font-color1)';
-        textElement.style.padding = '0 8px';
-        
-        // Add the text element to the logo container
-        logoElement.appendChild(textElement);
-        
-        // Adjust the width of the logo container to fit the text
+        // Style the container
         logoElement.style.width = 'auto';
         logoElement.style.minWidth = 'max-content';
+        logoElement.style.padding = '0 8px';
         
-        // Mark as replaced to avoid infinite loop
+        // Find the SVG element we just inserted and style it
+        const svgElement = logoElement.querySelector('svg');
+        if (svgElement) {
+          svgElement.style.height = '32px';
+          svgElement.style.width = 'auto';
+        }
+        
         logoElement.setAttribute('data-replaced', 'true');
       }
     };
