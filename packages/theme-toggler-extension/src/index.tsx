@@ -15,16 +15,10 @@ import { useState, useEffect } from 'react';
 import * as React from 'react';
 
 import '../style/index.css';
-import * as envergeLogoSvg from '../style/enverge.svg';
 
 import { INotebookTracker, NotebookActions } from '@jupyterlab/notebook';
 import { Widget } from '@lumino/widgets';
 import { Dialog } from '@jupyterlab/apputils';
-
-declare module '*.svg' {
-  const content: string;
-  export default content;
-}
 
 const themeTogglerPluginId = 'jupyterlab-theme-toggler:plugin';
 
@@ -251,25 +245,30 @@ const extension: JupyterFrontEndPlugin<void> = {
    
     setTimeout(adjustTopPanelHeight, 2000);
     
-    // Replace Jupyter logo with Enverge.ai SVG
+    // Replace Jupyter logo with Enverge.ai text
     const replaceLogo = () => {
       console.log('replacing logo');
       const logoElement = document.getElementById('jp-MainLogo');
       if (logoElement && !logoElement.hasAttribute('data-replaced')) {
+        // Clear existing content
         logoElement.innerHTML = '';
         
-        const imgElement = document.createElement('img');
-        imgElement.src = envergeLogoSvg as string;
-        imgElement.alt = 'Enverge.ai';
-        imgElement.style.height = '24px';
-        imgElement.style.width = 'auto';
+        // Create and style the text element
+        const textElement = document.createElement('div');
+        textElement.textContent = 'Enverge.ai';
+        textElement.style.fontWeight = 'bold';
+        textElement.style.fontSize = '18px';
+        textElement.style.color = 'var(--jp-ui-font-color1)';
+        textElement.style.padding = '0 8px';
         
-        logoElement.appendChild(imgElement);
+        // Add the text element to the logo container
+        logoElement.appendChild(textElement);
         
+        // Adjust the width of the logo container to fit the text
         logoElement.style.width = 'auto';
         logoElement.style.minWidth = 'max-content';
-        logoElement.style.padding = '0 8px';
         
+        // Mark as replaced to avoid infinite loop
         logoElement.setAttribute('data-replaced', 'true');
       }
     };
